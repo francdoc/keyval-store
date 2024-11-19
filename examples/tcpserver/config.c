@@ -86,7 +86,6 @@ int setup_tcp_server_config(int port)
 	int opt = 1;
 
 	// TODO: remove reusador.
-	// TODO: after an I/O cycle the server must close the connection.
 	if (setsockopt(global_server_sock_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
 		perror("Setsockopt failed");
 		close(global_server_sock_fd);
