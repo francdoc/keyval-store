@@ -45,11 +45,11 @@ error set_socket_non_blocking(int sockfd) {
 error unix_tcp_read(byte* buffer, isize* read_len)
 {
     ssize_t ret = read(global_client_sock_fd, buffer, *read_len);
-	
-    if (ret > 0) { // "ret" equals to the number of bytes that were read.
-        *read_len = ret;
-        return 0;
-    }
+
+	if (ret > 0) { // "ret" equals to the number of bytes that were read.
+		*read_len = ret;
+		return 0;
+	}
 
 	if (ret < 0) { 
 		// An error occurred during the read operation.
@@ -59,13 +59,13 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 	}
 
 	if (ret == 0) { // Indicates that the the client has closed the socket.
-        printf("Socket closed by client, exit program.\n");
-        exit(0);
-    }
+		printf("Socket closed by client, exit program.\n");
+		exit(0);
+	}
 
-    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-        return 0; // No data available in non-blocking mode. Since the socket is configured as non-blocking we let the program continue.
-    }
+	if (errno == EAGAIN || errno == EWOULDBLOCK) {
+		return 0; // No data available in non-blocking mode. Since the socket is configured as non-blocking we let the program continue.
+}
 }
 
 int setup_tcp_server_config(int port)
