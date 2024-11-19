@@ -42,6 +42,7 @@ error set_socket_non_blocking(int sockfd) {
     return 0;
 }
 
+// Read port for Unix socket.
 error unix_tcp_read(byte* buffer, isize* read_len)
 {
     ssize_t ret = read(global_client_sock_fd, buffer, *read_len);
@@ -58,7 +59,7 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 		*read_len = 0;
 	}
 
-	if (ret == 0) { // Indicates that the the client has closed the socket.
+	if (ret == 0) { // Indicates that the client has closed the socket.
 		printf("Connection lost with client, closing program.\n");
 		exit(EXIT_FAILURE);
 	}
@@ -131,7 +132,7 @@ error closeconn() {
 	}
 }
 
-error setup(int port)
+error sys_setup(int port)
 {
 	if (setup_tcp_server_config(port) < 0) {
 		printf("Error setup config server.\n");

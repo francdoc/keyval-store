@@ -24,7 +24,7 @@ int main()
 
     while (true) { // First loop for reconnection mechanism.
         if (conn_open == false) {
-            err = setup(port);
+            err = sys_setup(port);
             if (err != 0) {
                 printf("Setup failed. Closing program.\n");
                 exit(EXIT_FAILURE);

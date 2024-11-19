@@ -24,7 +24,6 @@ error shell_read(shell_t* s, byte* buffer, isize* read_len)
             buffer[*read_len - 1] = '\0'; // If last read character is '\n', replace it with a null terminator.
             (*read_len)--; // Adjust length according to previous mod.
         }
-        printf("Successful readout, null terminating the buffer.\n");
     }
 
     return err;

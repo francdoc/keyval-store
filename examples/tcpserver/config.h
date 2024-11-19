@@ -16,6 +16,6 @@ extern error set_socket_non_blocking(int sockfd);
 extern error setup_tcp_server_config(int port);
 extern error closeconn();
 
-extern error setup(int port);
+extern error sys_setup(int port);
 
 extern error process_cmd(byte *cmd, isize len_cmd);
