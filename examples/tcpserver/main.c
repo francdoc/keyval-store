@@ -41,9 +41,13 @@ int main()
             err = shell_read(&s, buffer, &totalRead);
 
             if (totalRead > 0) {
-                printf("Received %ld bytes: %.*s\n", totalRead, (int)totalRead, buffer);
-                                
+                printf("Received cmd: %s\n", buffer);
+
+                process_cmd(buffer, totalRead);
+
+                // TODO: add answer to client.
                 // TODO: close conn only if successfull interaction with client.
+                
                 err = closeconn();
                 if (err != 0) {
                     printf("Failed closing connection with client. Closing program.\n");

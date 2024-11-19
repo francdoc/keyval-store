@@ -148,3 +148,36 @@ error setup(int port)
 	
 	return 0;
 }
+
+error process_cmd(byte* cmd, isize len_cmd) {
+    char* cmd_set = "SET";
+	char* cmd_get = "GET";
+    char* cmd_del = "DEL";
+
+    char* key = NULL;
+    char* value = NULL;
+
+    char* token = strtok((char*)cmd, " "); // Gets cmd (first word in message from client).
+
+    if (token && strcmp(token, cmd_set) == 0) { // Checks first if token is not NULL.
+		key = strtok(NULL, " ");
+        value = strtok(NULL, " ");
+		printf("Key: %s\n", key);
+		printf("Value: %s\n", value);
+		return 0;
+	}
+	
+	if (token && strcmp(token, cmd_del) == 0) {
+		key = strtok(NULL, " ");
+		printf("Key: %s\n", key);
+		return 0;
+	}
+
+	if (token && strcmp(token, cmd_get) == 0) {
+		key = strtok(NULL, " ");
+		printf("Key: %s\n", key);
+		return 0;
+	}
+
+	// TODO: fsm logic.
+}
