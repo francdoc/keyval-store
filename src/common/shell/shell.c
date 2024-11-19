@@ -15,7 +15,7 @@ error shell_read(shell_t* s, byte* buffer, isize* read_len)
     // TODO: implement logic to handle case where read_len exceeds buffsize (some kind of accumulator).
     error err = s->rw.read(buffer, read_len);
 
-    if (*buffer == '\n') {
+    if (*buffer == '\n' | buffer[0] == ' ') {
         *read_len = 0; // If message is empty then we ignore it.
     }    
 

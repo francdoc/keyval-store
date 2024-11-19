@@ -15,6 +15,8 @@
 
 byte buffer[shellBufferSize];
 
+static bool conn_open = false;
+
 int main()
 {
     int port = 5000;
@@ -22,28 +24,47 @@ int main()
     error err;
     isize totalRead;
 
-    err = setup(port);
-    if (err != 0) {
-        printf("Setup failed. Exiting program.\n");
-        exit(1);
-    }
-
-    shell_t s = shell_new(commandline, sizeof(buffer));
-    printf("Shell ready on port %d...\n", port);
-
-    while (true) {
-        totalRead = shellBufferSize; // Buffer must be set for each read cycle.
-        err = shell_read(&s, buffer, &totalRead);
-        if (totalRead > 0) {
-            printf("Received %ld bytes: %.*s\n", totalRead, (int)totalRead, buffer);
+    while (true) { // First loop for reconnection mechanism.
+        if (conn_open == false) {
+            err = setup(port);
+            if (err != 0) {
+                printf("Setup failed. Closing program.\n");
+                exit(1);
+            } 
         }
+        conn_open = true;
         
-        #ifdef CHECK_NONBLOCK
-            printf("Check non-blocking.\n");
-        #endif
+        shell_t s = shell_new(commandline, sizeof(buffer));
+        printf("Shell ready.\n");
 
-        sleep_nano(500 * microseconds);
+        while (true) { // Second loop for non-blocking reading.
+            totalRead = shellBufferSize; // Buffer must be set for each read cycle.
+            
+            err = shell_read(&s, buffer, &totalRead);
+
+            if (totalRead > 0) {
+                printf("Received %ld bytes: %.*s\n", totalRead, (int)totalRead, buffer);
+                
+                // TODO: close conn only if successfull interaction with client.
+                err = closeconn();
+                if (err != 0) {
+                    printf("Failed closing connection with client. Closing program.\n");
+                    exit(1);
+                }
+                conn_open = false;
+            }
+            
+            #ifdef CHECK_NONBLOCK
+                printf("Check non-blocking.\n");
+            #endif
+
+            if (conn_open == false) {
+                printf("Reopening server.\n");
+                break; // Once we closed the connection with the client we break this loop and reopen the server.
+            }
+
+            sleep_nano(500 * microseconds);
+        }
     }
-
     return 0;
 }
