@@ -2,20 +2,28 @@
 
 #include "common/common.h"
 #include "common/syserrors.h"
+#include "common/filemanager/filemanager.h"
 
-error process_cmd(byte* cmd, isize len_cmd) {
-    char* cmd_set = "SET";
-	char* cmd_get = "GET";
-    char* cmd_del = "DEL";
+filemanager_t new_filemanager(char* cmd_set, char* cmd_get, char* cmd_del, char* cmd_separator, isize read_buffsize) {
+	filemanager_t flm;
+	zero(&flm);
+	flm.cmd_set = cmd_set;
+	flm.cmd_get = cmd_get;
+	flm.cmd_del = cmd_del;
+	flm.cmd_separator = cmd_separator;
+	flm.read_buffsize = read_buffsize;
+	return flm;
+}
 
+error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd) {
     char* key = NULL;
     char* value = NULL;
 
-    char* token = strtok((char*)cmd, " "); // Gets cmd (first word in message from client).
+    char* token = strtok((char*)cmd, flm.cmd_separator); // Gets cmd (first word in message from client).
 
-    if (token && strcmp(token, cmd_set) == 0) { // Checks first if token is not NULL.
-		key = strtok(NULL, " ");
-        value = strtok(NULL, " ");
+    if (token && strcmp(token, flm.cmd_set) == 0) { // Checks first if token is not NULL.
+		key = strtok(NULL, flm.cmd_separator);
+        value = strtok(NULL, flm.cmd_separator);
 		printf("Key: %s\n", key);
 		printf("Value: %s\n", value);
         
@@ -39,8 +47,8 @@ error process_cmd(byte* cmd, isize len_cmd) {
 		}
 	} 
 	
-	if (token && strcmp(token, cmd_del) == 0) {
-		key = strtok(NULL, " ");
+	if (token && strcmp(token, flm.cmd_del) == 0) {
+		key = strtok(NULL, flm.cmd_separator);
 		printf("Key: %s\n", key);
 
         if (access(key, F_OK) == 0) { // F_OK checks for file existence.
@@ -57,8 +65,8 @@ error process_cmd(byte* cmd, isize len_cmd) {
 		}
 	}
 
-	if (token && strcmp(token, cmd_get) == 0) {
-		key = strtok(NULL, " ");
+	if (token && strcmp(token, flm.cmd_get) == 0) {
+		key = strtok(NULL, flm.cmd_separator);
 		printf("Key: %s\n", key);
 		// Open the file for reading
 		int fd = open(key, O_RDONLY);
@@ -70,7 +78,7 @@ error process_cmd(byte* cmd, isize len_cmd) {
 		}
 
 		// Read the content of the file
-		char buffer[512];
+		char buffer[flm.read_buffsize];
 		ssize_t bytes_read = read(fd, buffer, sizeof(buffer)-1); // Leave 1 byte of space for null-terminator at the end of the buffer.
 		if (bytes_read < 0) {
 			perror("Error reading file");

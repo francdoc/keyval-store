@@ -2,6 +2,7 @@
 
 #include "common/common.h"
 #include "common/shell/shell.h"
+#include "common/filemanager/filemanager.h"
 
 #include "config.h"
 
@@ -10,6 +11,7 @@
 #define seconds (1000 * milliseconds)
 
 #define shellBufferSize 512 // bytes
+#define filemanagerBufferSize 512 // bytes
 
 #define port 5000
 
@@ -22,6 +24,10 @@ int main()
     error err;
     isize totalRead;
 
+    filemanager_t flm;
+
+    flm = new_filemanager("SET", "GET", "DEL", " ", filemanagerBufferSize);
+    
     while (true) { // First loop for reconnection mechanism.
         if (conn_open == false) {
             err = sys_setup(port);
@@ -43,10 +49,10 @@ int main()
             if (totalRead > 0) {
                 printf("Received cmd: %s\n", buffer);
 
-                err = process_cmd(buffer, totalRead);
+                err = filemanager_process_cmd(flm, buffer, totalRead);
                 
                 // TODO: add answer to client.
-                // TODO: check if exit(EXIT_FAILURE) is valid to end program.
+                // TODO: NOTFOUND does not have to end program.
                 
                 if (err == 0) { // // If the processed command was valid and successfully handled, close the connection with the client.
                     err = closeconn();

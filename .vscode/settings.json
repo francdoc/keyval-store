@@ -17,6 +17,7 @@
         "stdio.h": "c",
         "error.h": "c",
         "fcntl.h": "c",
-        "syserrors.h": "c"
+        "syserrors.h": "c",
+        "filemanager.h": "c"
     }
 }
