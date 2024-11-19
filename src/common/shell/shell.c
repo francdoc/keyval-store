@@ -14,7 +14,11 @@ error shell_read(shell_t* s, byte* buffer, isize* read_len)
 {
     // TODO: implement logic to handle case where read_len exceeds buffsize (some kind of accumulator).
     error err = s->rw.read(buffer, read_len);
-    
+
+    if (*buffer == '\n') {
+        *read_len = 0; // If message is empty then we ignore it.
+    }    
+
     if (*read_len > 0) { // We access the value pointed to by read_len.
         printf("Successful readout, null terminating the buffer.\n");
         buffer[*read_len] = '\0'; // Null-terminate the buffer.

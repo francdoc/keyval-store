@@ -37,6 +37,11 @@ int main()
         if (totalRead > 0) {
             printf("Received %ld bytes: %.*s\n", totalRead, (int)totalRead, buffer);
         }
+        
+        #ifdef CHECK_NONBLOCK
+            printf("Check non-blocking.\n");
+        #endif
+
         sleep_nano(500 * microseconds);
     }
 
