@@ -164,20 +164,19 @@ error process_cmd(byte* cmd, isize len_cmd) {
         value = strtok(NULL, " ");
 		printf("Key: %s\n", key);
 		printf("Value: %s\n", value);
-		return 0;
+		// TODO: create file called <key> with content <value>.
 	}
 	
 	if (token && strcmp(token, cmd_del) == 0) {
 		key = strtok(NULL, " ");
 		printf("Key: %s\n", key);
-		return 0;
+		// TODO: if file exists, delete it.
 	}
 
 	if (token && strcmp(token, cmd_get) == 0) {
 		key = strtok(NULL, " ");
 		printf("Key: %s\n", key);
+		// TODO: if files exists, get <key>.
 		return 0;
 	}
-
-	// TODO: fsm logic.
 }
