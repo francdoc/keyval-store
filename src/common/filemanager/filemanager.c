@@ -21,47 +21,47 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd) {
 
     char* token = strtok((char*)cmd, flm.cmd_separator); // Gets cmd (first word in message from client).
 
-    if (token && strcmp(token, flm.cmd_set) == 0) { // Checks first if token is not NULL.
+	if (token && strcmp(token, flm.cmd_set) == 0) { // Checks first if token is not NULL.
 		key = strtok(NULL, flm.cmd_separator);
-        value = strtok(NULL, flm.cmd_separator);
+		value = strtok(NULL, flm.cmd_separator);
 		printf("Key: %s\n", key);
 		printf("Value: %s\n", value);
-        
-        if (key && value) { // Ensure both key and value are not NULL.
-            int fd = open(key, O_CREAT | O_WRONLY | O_TRUNC, 0644); // Create a file with overwrite, read and write access.
-            if (fd < 0) {
-                perror("Failed to create file");
-                return ERSYS;
-            }
+		
+		if (key && value) { // Ensure both key and value are not NULL.
+			int fd = open(key, O_CREAT | O_WRONLY | O_TRUNC, 0644); // Create a file with overwrite, read and write access.
+			if (fd < 0) {
+				perror("Failed to create file");
+				return ERSYS;
+			}
 
-            ssize_t bytes_written = write(fd, value, strlen(value)); // Write the value to the file.
-            if (bytes_written < 0) {
-                perror("Failed to write to file");
-                close(fd);
-                return ERSYS;
-            }
+			ssize_t bytes_written = write(fd, value, strlen(value)); // Write the value to the file.
+			if (bytes_written < 0) {
+				perror("Failed to write to file");
+				close(fd);
+				return ERSYS;
+			}
 
-            close(fd); // Close the file descriptor after writing.
-            printf("File '%s' created successfully.\n", key);
-			return 0;
+			close(fd); // Close the file descriptor after writing.
+			printf("File '%s' created successfully.\n", key);
+			return 0; // TODO: respond to client 'OK\n'.
 		}
 	} 
-	
+
 	if (token && strcmp(token, flm.cmd_del) == 0) {
 		key = strtok(NULL, flm.cmd_separator);
 		printf("Key: %s\n", key);
 
-        if (access(key, F_OK) == 0) { // F_OK checks for file existence.
-            if (remove(key) == 0) {
-                printf("File '%s' deleted successfully.\n", key); 
-				return 0;
+		if (access(key, F_OK) == 0) { // F_OK checks for file existence.
+			if (remove(key) == 0) {
+				printf("File '%s' deleted successfully.\n", key); 
+				return 0; // TODO: respond to client 'OK\n'.
 			} else {
 				perror("Failed to delete file");
 				return ERSYS;
 			}	
 		} else {
-			// TODO: this requires more handling.
 			printf("File '%s' does not exist.\n", key);
+			return 0; // TODO: respond to client 'OK\n'.
 		}
 	}
 
@@ -72,9 +72,7 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd) {
 		int fd = open(key, O_RDONLY);
 		if (fd < 0) {
 			perror("File not found or error opening file");
-			// TODO: this requires more handling.
-			printf("NOTFOUND\n");
-			return ERSYS;
+			return ERFNOTFOUND; // TODO: respond to client 'NOTFOUND\n'.
 		}
 
 		// Read the content of the file
@@ -92,8 +90,8 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd) {
 		}
 
 		// Close the file.
-		close(fd);
-		return 0;
+		close(fd); 
+		return 0; // TODO: respond to client 'OK\n<value>\n'
 	}
 	
 	return ERSYS;	
