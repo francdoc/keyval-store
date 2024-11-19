@@ -27,7 +27,7 @@ int main()
             err = setup(port);
             if (err != 0) {
                 printf("Setup failed. Closing program.\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             } 
         }
         conn_open = true;
@@ -46,19 +46,19 @@ int main()
                 err = process_cmd(buffer, totalRead);
                 
                 // TODO: add answer to client.
-                // TODO: check if exit(1) is valid to end program.
+                // TODO: check if exit(EXIT_FAILURE) is valid to end program.
                 
                 if (err == 0) { // // If the processed command was valid and successfully handled, close the connection with the client.
                     err = closeconn();
                     if (err != 0) {
                         printf("Failed closing connection with client. Closing program.\n");
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     conn_open = false;
                 }
                 else {
                     printf("Command not found, ending program.\n");
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
             }
             

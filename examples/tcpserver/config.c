@@ -60,7 +60,7 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 
 	if (ret == 0) { // Indicates that the the client has closed the socket.
 		printf("Connection lost with client, closing program.\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -217,13 +217,15 @@ error process_cmd(byte* cmd, isize len_cmd) {
 
 		// Read the content of the file
 		char buffer[512];
-		ssize_t bytes_read = read(fd, buffer, sizeof(buffer)); // Leave space for null terminator.
+		ssize_t bytes_read = read(fd, buffer, sizeof(buffer)-1); // Leave 1 byte of space for null-terminator at the end of the buffer.
 		if (bytes_read < 0) {
 			perror("Error reading file");
 			close(fd);
 			return ERSYS;
 		}
 		if (bytes_read > 0) {
+			// Null-terminate the buffer to prevent garbage output.
+			buffer[bytes_read] = '\0';
 			printf("Value: %s\n", buffer);
 		}
 
@@ -231,5 +233,6 @@ error process_cmd(byte* cmd, isize len_cmd) {
 		close(fd);
 		return 0;
 	}
+	
 	return ERSYS;	
 }
