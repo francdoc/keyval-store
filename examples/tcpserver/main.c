@@ -5,13 +5,13 @@
 
 #include "config.h"
 
-#define errInvalidArg 40
-
 #define microseconds (1000)
 #define milliseconds (1000 * microseconds)
 #define seconds (1000 * milliseconds)
 
 #define shellBufferSize 512 // bytes
+
+#define port 5000
 
 byte buffer[shellBufferSize];
 
@@ -19,8 +19,6 @@ static bool conn_open = false;
 
 int main()
 {
-    int port = 5000;
-
     error err;
     isize totalRead;
 
@@ -44,7 +42,7 @@ int main()
 
             if (totalRead > 0) {
                 printf("Received %ld bytes: %.*s\n", totalRead, (int)totalRead, buffer);
-                
+                                
                 // TODO: close conn only if successfull interaction with client.
                 err = closeconn();
                 if (err != 0) {

@@ -68,7 +68,7 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 }
 }
 
-int setup_tcp_server_config(int port)
+error setup_tcp_server_config(int port)
 {
 	struct sockaddr_in server_addr;
 	int client_fd;
