@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "implementations.h": "c",
+        "common.h": "c",
+        "shells.h": "c",
+        "stdint.h": "c",
+        "cstdlib": "c",
+        "ctype.h": "c",
+        "shell.h": "c",
+        "errors.h": "c",
+        "stdlib.h": "c",
+        "shell_fsm.h": "c",
+        "config.h": "c",
+        "unistd.h": "c",
+        "select.h": "c"
+    }
+}
