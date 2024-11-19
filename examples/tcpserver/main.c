@@ -43,17 +43,23 @@ int main()
             if (totalRead > 0) {
                 printf("Received cmd: %s\n", buffer);
 
-                process_cmd(buffer, totalRead);
-
-                // TODO: add answer to client.
-                // TODO: close conn only if successfull interaction with client.
+                err = process_cmd(buffer, totalRead);
                 
-                err = closeconn();
-                if (err != 0) {
-                    printf("Failed closing connection with client. Closing program.\n");
+                // TODO: add answer to client.
+                // TODO: check if exit(1) is valid to end program.
+                
+                if (err == 0) { // // If the processed command was valid and successfully handled, close the connection with the client.
+                    err = closeconn();
+                    if (err != 0) {
+                        printf("Failed closing connection with client. Closing program.\n");
+                        exit(1);
+                    }
+                    conn_open = false;
+                }
+                else {
+                    printf("Command not found, ending program.\n");
                     exit(1);
                 }
-                conn_open = false;
             }
             
             #ifdef CHECK_NONBLOCK
