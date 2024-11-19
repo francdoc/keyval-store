@@ -53,6 +53,7 @@ int main()
                 
                 // TODO: add answer to client.
                 // TODO: NOTFOUND does not have to end program.
+                // TODO: run valgrind.
                 
                 if (err == 0) { // // If the processed command was valid and successfully handled, close the connection with the client.
                     err = closeconn();
