@@ -134,6 +134,7 @@ error closeconn() {
 	if (close(global_client_sock_fd) !=0){
 		return ERRSYS;
 	}
+	return SYSOK;
 }
 
 error sys_setup(int port)
