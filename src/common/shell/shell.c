@@ -13,8 +13,15 @@ shell_t shell_new(readwriter_t rw, isize buffsize)
 
 error shell_read(shell_t* s, byte* buffer, isize* read_len)
 {
-    // TODO: handle case where read_len exceeds buffsize.
+    *read_len = s->buffsize;
+    
     error err = s->rw.read(buffer, read_len);
+    
+    // If the data read equals/exceeds the buffer size, it may indicate data loss or buffer overflow.
+    if (*read_len >= s->buffsize) {
+        perror("Shell input exceeds bufferRead size. Closing program.\n");
+        exit(EXIT_FAILURE);
+    }
 
     if (*buffer == '\n' | buffer[0] == ' ') {
         *read_len = 0; // If message is empty then we ignore it.

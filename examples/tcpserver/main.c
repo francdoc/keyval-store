@@ -12,7 +12,7 @@
 #define seconds (1000 * milliseconds)
 
 #define shellBufferSize 512 // bytes
-#define filemanagerBufferSize 512 // bytes
+#define filemanagerBufferSize shellBufferSize // bytes
 
 #define port 5000
 
