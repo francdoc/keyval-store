@@ -55,7 +55,7 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 
 	if (ret < 0) { 
 		// An error occurred during the read operation.
-		// Reset *read_len is to 0 to prevent main event loop from printing useless data.
+		// *read_len = 0 is to prevent main event loop from printing useless data.
 		// This ensures no spamming occurs in the event loop if the client does not send any data.
 		*read_len = 0;
 	}
@@ -65,7 +65,9 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 		exit(EXIT_FAILURE);
 	}
 
-	if (errno == EAGAIN || errno == EWOULDBLOCK) { // No data available in non-blocking mode. Since the socket is configured as non-blocking we let the program continue.
+	if (errno == EAGAIN || errno == EWOULDBLOCK) { 
+		// No data available in non-blocking mode. 
+		// Since the socket is configured as non-blocking we let the program continue normally.
 		return SYSOK; 
 	}
 }
@@ -98,15 +100,6 @@ error setup_tcp_server_config(int port)
 		return ERSYS;
 	}
 
-	int opt = 1;
-
-	// TODO: remove reusador.
-	if (setsockopt(global_server_sock_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		perror("Setsockopt failed");
-		close(global_server_sock_fd);
-		return ERSYS;
-	}
-
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -126,14 +119,13 @@ error setup_tcp_server_config(int port)
 	printf("Socket listening.\n");
 
 	client_len = sizeof(client_addr);
-
 	client_fd = accept(global_server_sock_fd, (struct sockaddr*)&client_addr, &client_len);
 	if (client_fd < 0) {
 		perror("Accept failed");
 		return ERSYS;
 	}
 	printf("Client connected to cfg server.\n");
-
+	
 	global_client_sock_fd = client_fd;
 
 	return SYSOK;

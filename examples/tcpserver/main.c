@@ -21,12 +21,6 @@ byte bufferWrite[shellBufferSize];
 
 static bool conn_open = false;
 
-// For debugging.
-void wait_for_enter() {
-    printf("Press Enter to continue...");
-    getchar(); // Reads a single character from stdin
-} 
-
 int main()
 {
     error err;
