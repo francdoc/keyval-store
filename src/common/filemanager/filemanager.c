@@ -76,8 +76,7 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 		}
 
 		// Read the content of the file
-		char buffer[flm.read_buffsize];
-		ssize_t bytes_read = read(fd, buffer, sizeof(buffer)-1); // Leave 1 byte of space for null-terminator at the end of the buffer.
+		ssize_t bytes_read = read(fd, read_val, flm.read_buffsize - 1); //  // Leave 1 byte of space for null-terminator at the end of the buffer.
 		if (bytes_read < 0) {
 			perror("Error reading file");
 			close(fd);
@@ -85,9 +84,8 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 		}
 		if (bytes_read > 0) {
 			// Null-terminate the buffer to prevent garbage output.
-			buffer[bytes_read] = '\0';
-			printf("Value: %s\n", buffer);
-			char* read_val = buffer;
+			read_val[bytes_read] = '\0';
+			printf("Value: %s\n", read_val);
 		}
 
 		// Close the file.
