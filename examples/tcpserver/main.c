@@ -1,3 +1,5 @@
+// TODO: run valgrind.
+
 #include <stdlib.h>
 
 #include "common/common.h"
@@ -54,30 +56,30 @@ int main()
                 char* read_val;
                 err = filemanager_process_cmd(flm, bufferRead, totalRead, read_val);
                 
-                // TODO: run valgrind.
-                
-                if (err == SYSOK) { // // If the processed command was valid and successfully handled, close the connection with the client.
-                    err = closeconn();
-                    if (err != 0) {
-                        printf("Failed closing connection with client. Closing program.\n");
-                        exit(EXIT_FAILURE);
-                    }
-                    bufferWrite = "OK\n";
-                    shell_write(&s, bufferWrite, sizeof(bufferWrite));
-                    conn_open = false;
+                if (err == SYSOK) { // If the processed command was valid and successfully handled, close the connection with the client.
+                    snprintf((char*) bufferWrite, sizeof(bufferWrite), "OK\n");
+                    shell_write(&s, bufferWrite, strlen((char*) bufferWrite));
                 }
                 else if (err == ERFNOTFOUND) {
-                    bufferWrite = "NOTFOUND\n";
-                    shell_write(&s, bufferWrite, sizeof(bufferWrite));
+                    snprintf((char*)bufferWrite, sizeof(bufferWrite), "NOTFOUND\n");
+                    shell_write(&s, bufferWrite, strlen((char*)bufferWrite));
                 }
                 else if (err == RETURNVAL) {
-                    bufferWrite = "OK\n + read_val * \n";
-                    shell_write(&s, bufferWrite, sizeof(bufferWrite));
+                    snprintf((char*)bufferWrite, sizeof(bufferWrite), "OK\n%s\n", read_val);
+                    shell_write(&s, bufferWrite, strlen((char*)bufferWrite));
                 }
-                else {
+                else if (err == ERSYS) {
+                    snprintf((char*)bufferWrite, sizeof(bufferWrite), "ERROR\n");
+                    shell_write(&s, bufferWrite, strlen((char*)bufferWrite));
                     printf("Command not found, ending program.\n");
+                    exit(EXIT_FAILURE);                
+                }
+                err = closeconn();
+                if (err != 0) {
+                    printf("Failed closing connection with client. Closing program.\n");
                     exit(EXIT_FAILURE);
                 }
+                conn_open = false;
             }
             
             #ifdef CHECK_NONBLOCK
@@ -88,7 +90,6 @@ int main()
                 printf("Reopening server.\n");
                 break; // Once we closed the connection with the client we break this loop and reopen the server.
             }
-
             sleep_nano(500 * microseconds);
         }
     }
