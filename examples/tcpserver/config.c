@@ -65,9 +65,22 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 		exit(EXIT_FAILURE);
 	}
 
-	if (errno == EAGAIN || errno == EWOULDBLOCK) {
-		return SYSOK; // No data available in non-blocking mode. Since the socket is configured as non-blocking we let the program continue.
+	if (errno == EAGAIN || errno == EWOULDBLOCK) { // No data available in non-blocking mode. Since the socket is configured as non-blocking we let the program continue.
+		return SYSOK; 
+	}
 }
+
+error unix_tcp_write(byte* buffer, isize* write_len) {
+    ssize_t ret = write(global_client_sock_fd, buffer, *write_len);
+
+    if (ret > 0) { 
+        *write_len = ret;
+        return SYSOK;
+    }
+
+    *write_len = 0; // Reset the write length on error.
+    perror("Error writing to socket");
+    return ERSYS;
 }
 
 error setup_tcp_server_config(int port)

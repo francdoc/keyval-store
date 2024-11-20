@@ -16,7 +16,8 @@
 
 #define port 5000
 
-byte buffer[shellBufferSize];
+byte bufferRead[shellBufferSize];
+byte bufferWrite[shellBufferSize];
 
 static bool conn_open = false;
 
@@ -39,19 +40,19 @@ int main()
         }
         conn_open = true;
         
-        shell_t s = shell_new(commandline, sizeof(buffer));
+        shell_t s = shell_new(commandline, sizeof(bufferRead));
         printf("Shell ready.\n");
 
         while (true) { // Second loop for non-blocking reading.
             totalRead = shellBufferSize; // Buffer must be set for each read cycle.
             
-            err = shell_read(&s, buffer, &totalRead);
+            err = shell_read(&s, bufferRead, &totalRead);
 
             if (totalRead > 0) {
-                printf("Received cmd: %s\n", buffer);
+                printf("Received cmd: %s\n", bufferRead);
 
                 char* read_val;
-                err = filemanager_process_cmd(flm, buffer, totalRead, read_val);
+                err = filemanager_process_cmd(flm, bufferRead, totalRead, read_val);
                 
                 // TODO: run valgrind.
                 
@@ -61,13 +62,17 @@ int main()
                         printf("Failed closing connection with client. Closing program.\n");
                         exit(EXIT_FAILURE);
                     }
+                    bufferWrite = "OK\n";
+                    shell_write(&s, bufferWrite, sizeof(bufferWrite));
                     conn_open = false;
                 }
                 else if (err == ERFNOTFOUND) {
-
+                    bufferWrite = "NOTFOUND\n";
+                    shell_write(&s, bufferWrite, sizeof(bufferWrite));
                 }
                 else if (err == RETURNVAL) {
-
+                    bufferWrite = "OK\n + read_val * \n";
+                    shell_write(&s, bufferWrite, sizeof(bufferWrite));
                 }
                 else {
                     printf("Command not found, ending program.\n");

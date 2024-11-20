@@ -1,5 +1,6 @@
 #include "common/common.h"
 #include "common/shell/shell.h"
+#include "common/syscodes.h"
 
 shell_t shell_new(readwriter_t rw, isize buffsize)
 {
@@ -27,4 +28,20 @@ error shell_read(shell_t* s, byte* buffer, isize* read_len)
     }
 
     return err;
+}
+
+error shell_write(shell_t* s, byte* buffer, isize* write_len) {
+    if (!buffer || !write_len || *write_len <= 0) {
+        return ERSYS;
+    }
+
+    ssize_t ret = s->rw.write(buffer, write_len);
+
+    if (ret > 0) {
+        *write_len = ret;
+        return SYSOK;
+    }
+
+    *write_len = 0;
+    return ERSYS;
 }
