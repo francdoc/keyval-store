@@ -16,39 +16,48 @@ error shell_read(shell_t* s, byte* buffer, isize* read_len)
     *read_len = s->buffsize;
     
     error err = s->rw.read(buffer, read_len);
-    
-    // If the data read equals/exceeds the buffer size, it may indicate data loss or buffer overflow.
-    if (*read_len >= s->buffsize) {
-        perror("Shell input exceeds bufferRead size. Closing program.\n");
-        exit(EXIT_FAILURE);
+
+    if (err != SYSOK) {
+        printf("[SHELL]: Error with reader port.\n");
+        return ERRSYS;
     }
 
     if (*buffer == '\n' | buffer[0] == ' ') {
         *read_len = 0; // If message is empty then we ignore it.
-    }    
+        return SYSOK;
+    }
+
+    // If the data read equals/exceeds the buffer size, it may indicate data loss or buffer overflow.
+    if (*read_len >= s->buffsize) {
+        return ERRSYS;
+    }
 
     if (*read_len > 0) { // We access the value pointed to by read_len.
         if (buffer[*read_len - 1] == '\n') {
             buffer[*read_len - 1] = '\0'; // If last read character is '\n', replace it with a null terminator.
             (*read_len)--; // Adjust length according to previous mod.
         }
+        return SYSOK;
     }
 
-    return err;
+    *read_len = 0;
+    return ERRSYS; // If we got here then return error.
 }
 
 error shell_write(shell_t* s, byte* buffer, isize* write_len) {
     if (!buffer || !write_len || *write_len <= 0) {
+        printf("[SHELL]: Invalid write attempt: buffer is null or write length is zero.\n");
         return ERRSYS;
     }
 
-    ssize_t ret = s->rw.write(buffer, write_len);
+    error err = s->rw.write(buffer, write_len);
 
-    if (ret > 0) {
-        *write_len = ret;
+    if (err == SYSOK) {
+        printf("[SHELL]: Shell write successful. Bytes written: %ld\n", *write_len);
         return SYSOK;
     }
 
     *write_len = 0;
+    printf("[SHELL]: Shell write failed. No bytes written.\n");
     return ERRSYS;
 }
