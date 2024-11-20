@@ -57,7 +57,7 @@ int main()
             if (totalRead > 0) {
                 printf("Received cmd: %s\n", bufferRead);
 
-                char* read_val;
+                char read_val[filemanagerBufferSize] = {0};
                 err = filemanager_process_cmd(flm, bufferRead, totalRead, read_val);
                                 
                 if (err == SYSOK) { // If the processed command was valid and successfully handled, close the connection with the client.
@@ -71,7 +71,9 @@ int main()
                     shell_write(&s, bufferWrite, &write_len);
                 }
                 else if (err == RETURNVAL) {
-                    snprintf((char*)bufferWrite, sizeof(bufferWrite), "OK\n%s\n", read_val);
+                    size_t fixed_overhead = strlen("OK\n") + strlen("\n") + 1; // To avoid warning related to truncated writing.
+                    size_t max_read_val_length = sizeof(bufferWrite) - fixed_overhead;
+                    snprintf((char*)bufferWrite, sizeof(bufferWrite), "OK\n%.*s\n", (int)max_read_val_length, read_val);
                     isize write_len = strlen((char*)bufferWrite);
                     shell_write(&s, bufferWrite, &write_len);
                 }
