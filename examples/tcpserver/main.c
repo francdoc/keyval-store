@@ -1,5 +1,3 @@
-// TODO: run valgrind.
-
 #include <stdlib.h>
 
 #include "common/common.h"
@@ -22,6 +20,12 @@ byte bufferRead[shellBufferSize];
 byte bufferWrite[shellBufferSize];
 
 static bool conn_open = false;
+
+// For debugging.
+void wait_for_enter() {
+    printf("Press Enter to continue...");
+    getchar(); // Reads a single character from stdin
+} 
 
 int main()
 {
@@ -55,7 +59,7 @@ int main()
 
                 char* read_val;
                 err = filemanager_process_cmd(flm, bufferRead, totalRead, read_val);
-                
+                                
                 if (err == SYSOK) { // If the processed command was valid and successfully handled, close the connection with the client.
                     snprintf((char*) bufferWrite, sizeof(bufferWrite), "OK\n");
                     isize write_len = strlen((char*)bufferWrite);

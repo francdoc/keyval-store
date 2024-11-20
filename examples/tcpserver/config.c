@@ -21,8 +21,8 @@
 readwriter_t commandline;
 sleeper sleep_nano;
 
-int global_server_sock_fd = -1;
-int global_client_sock_fd = -1;
+int global_server_sock_fd = 0;
+int global_client_sock_fd = 0;
 
 void sleep_nano_linux(int64_t nanoseconds)
 {
@@ -160,6 +160,7 @@ error sys_setup(int port)
 
 	sleep_nano = &sleep_nano_linux;
 	commandline.read = unix_tcp_read;
+	commandline.write = unix_tcp_write;
 	
 	return SYSOK;
 }
