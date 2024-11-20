@@ -31,16 +31,16 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 			int fd = open(key, O_CREAT | O_WRONLY | O_TRUNC, 0644);
 			if (fd < 0) {
 				perror("Failed to create file");
-				return ERSYS;
+				return ERRSYS;
 			}
 
 			ssize_t bytes_written = write(fd, value, strlen(value));
 			if (bytes_written < 0) {
 				perror("Failed to write to file");
 				close(fd);
-				return ERSYS;
+				return ERRSYS;
 			}
-
+			
 			close(fd);
 			printf("File '%s' created successfully.\n", key);
 			return SYSOK;
@@ -57,7 +57,7 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 				return SYSOK;
 			} else {
 				perror("Failed to delete file");
-				return ERSYS;
+				return ERRSYS;
 			}	
 		} else {
 			printf("File '%s' does not exist.\n", key);
@@ -72,7 +72,7 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 		int fd = open(key, O_RDONLY);
 		if (fd < 0) {
 			perror("File not found or error opening file");
-			return ERFNOTFOUND;
+			return ERRFILE;
 		}
 
 		// Read the content of the file
@@ -80,7 +80,7 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 		if (bytes_read < 0) {
 			perror("Error reading file");
 			close(fd);
-			return ERSYS;
+			return ERRSYS;
 		}
 		if (bytes_read > 0) {
 			read_val[bytes_read] = '\0'; // Null-terminate the buffer to prevent garbage output.
@@ -91,5 +91,5 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 		return RETURNVAL;
 	}
 
-	return ERSYS;	
+	return ERRSYS;	
 }

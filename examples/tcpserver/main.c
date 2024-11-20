@@ -32,7 +32,7 @@ int main()
     
     err = sys_setup(port);
     if (err != 0) {
-        printf("Setup failed. Closing program.\n");
+        perror("Setup failed. Closing program.\n");
         exit(EXIT_FAILURE);
     } 
 
@@ -40,7 +40,7 @@ int main()
         if (conn_open == false) {
             err = acceptconn();
             if (err != 0) {
-                printf("Accept connection failed. Closing program.\n");
+                perror("Accept connection failed. Closing program.\n");
                 exit(EXIT_FAILURE);
             }
             conn_open = true;
@@ -65,7 +65,7 @@ int main()
                     isize write_len = strlen((char*)bufferWrite);
                     shell_write(&s, bufferWrite, &write_len);
                 }
-                else if (err == ERFNOTFOUND) {
+                else if (err == ERRFILE) {
                     snprintf((char*)bufferWrite, sizeof(bufferWrite), "NOTFOUND\n");
                     isize write_len = strlen((char*)bufferWrite);
                     shell_write(&s, bufferWrite, &write_len);
@@ -77,13 +77,13 @@ int main()
                     isize write_len = strlen((char*)bufferWrite);
                     shell_write(&s, bufferWrite, &write_len);
                 }
-                else if (err == ERSYS) {
-                    printf("Command not found, ending program.\n");
+                else if (err == ERRSYS) {
+                    perror("Command not found, ending program.\n");
                     exit(EXIT_FAILURE);                
                 }
                 err = closeconn();
                 if (err != 0) {
-                    printf("Failed closing connection with client. Closing program.\n");
+                    perror("Failed closing connection with client. Closing program.\n");
                     exit(EXIT_FAILURE);
                 }
                 conn_open = false;

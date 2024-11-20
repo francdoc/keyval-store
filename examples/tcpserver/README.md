@@ -6,3 +6,4 @@
 4. ./tcpserver.bin
 5. valgrind --leak-check=full ./tcpserver.bin 
 6. valgrind --leak-check=full --track-origins=yes ./tcpserver.bin
+7. valgrind --leak-check=full --show-leak-kinds=all ./tcpserver.bin

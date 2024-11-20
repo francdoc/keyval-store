@@ -8,7 +8,7 @@ extern void sleep_nano_linux(int64_t nanoseconds);
 
 extern error unix_tcp_read(byte* buffer, isize* read_len);
 extern error set_socket_non_blocking(int sockfd);
-extern error setup_tcp_server_config(int port);
+extern error setup_tcp_server(int port);
 extern error closeconn();
 extern error acceptconn();
 

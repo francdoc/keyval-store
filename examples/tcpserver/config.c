@@ -34,12 +34,12 @@ error set_socket_non_blocking(int sockfd) {
     int flags = fcntl(sockfd, F_GETFL, 0);
     if (flags == -1) {
         perror("fcntl F_GETFL");
-        return ERSYS;
+        return ERRSYS;
     }
 
     if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) == -1) {
         perror("fcntl F_SETFL O_NONBLOCK");
-        return ERSYS;
+        return ERRSYS;
     }
     return SYSOK;
 }
@@ -61,7 +61,7 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 	}
 
 	if (ret == 0) { // Indicates that the client has closed the socket.
-		printf("Connection lost with client, closing program.\n");
+		perror("Connection lost with client, closing program.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -82,19 +82,17 @@ error unix_tcp_write(byte* buffer, isize* write_len) {
 
     *write_len = 0; // Reset the write length on error.
     perror("Error writing to socket");
-    return ERSYS;
+    return ERRSYS;
 }
 
-error setup_tcp_server_config(int port)
+error setup_tcp_server(int port)
 {
 	struct sockaddr_in server_addr;
-
-	close(global_server_sock_fd); // In case it was previosly created.
 
 	global_server_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (global_server_sock_fd < 0) {
 		perror("Socket creation failed");
-		return ERSYS;
+		return ERRSYS;
 	}
 
 	memset(&server_addr, 0, sizeof(server_addr));
@@ -105,13 +103,13 @@ error setup_tcp_server_config(int port)
 	if (bind(global_server_sock_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
 		perror("Socket bind failed");
 		close(global_server_sock_fd);
-		return ERSYS;
+		return ERRSYS;
 	}
 
 	if (listen(global_server_sock_fd, 1) < 0) {
 		perror("Listen failed");
 		close(global_server_sock_fd);
-		return ERSYS;
+		return ERRSYS;
 	}
 	printf("Socket listening.\n");
 	return SYSOK;
@@ -126,7 +124,7 @@ error acceptconn() {
 	client_fd = accept(global_server_sock_fd, (struct sockaddr*)&client_addr, &client_len);
 	if (client_fd < 0) {
 		perror("Accept failed");
-		return ERSYS;
+		return ERRSYS;
 	}
 	printf("Client connected to cfg server.\n");
 	
@@ -137,20 +135,20 @@ error acceptconn() {
 error closeconn() {
 	printf("Closing connection with client.\n");
 	if (close(global_client_sock_fd) !=0){
-		return ERSYS;
+		return ERRSYS;
 	}
 }
 
 error sys_setup(int port)
 {
 	if (set_socket_non_blocking(global_client_sock_fd) != 0) {
-		printf("Failed to set config config socket to non-blocking mode\n");
-		return ERSYS;
+		perror("Failed to set config config socket to non-blocking mode\n");
+		return ERRSYS;
 	}
 
-	if (setup_tcp_server_config(port) < 0) {
-		printf("Error setup config server.\n");
-		return ERSYS;
+	if (setup_tcp_server(port) < 0) {
+		perror("Error with setup server.\n");
+		return ERRSYS;
 	}
 
 	sleep_nano = &sleep_nano_linux;

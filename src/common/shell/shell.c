@@ -32,7 +32,7 @@ error shell_read(shell_t* s, byte* buffer, isize* read_len)
 
 error shell_write(shell_t* s, byte* buffer, isize* write_len) {
     if (!buffer || !write_len || *write_len <= 0) {
-        return ERSYS;
+        return ERRSYS;
     }
 
     ssize_t ret = s->rw.write(buffer, write_len);
@@ -43,5 +43,5 @@ error shell_write(shell_t* s, byte* buffer, isize* write_len) {
     }
 
     *write_len = 0;
-    return ERSYS;
+    return ERRSYS;
 }
