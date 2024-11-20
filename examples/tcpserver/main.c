@@ -103,7 +103,8 @@ int main()
                     printf("[MAIN]: Command not found, ending program.\n");
                     exit(EXIT_FAILURE);                
                 }
-                err = closeconn();
+                
+                err = closeconn(); // If we got here then we are good to respond back to the client.
                 if (err != 0) {
                     perror("[MAIN]: Failed closing connection with client. Closing program.\n");
                     exit(EXIT_FAILURE);

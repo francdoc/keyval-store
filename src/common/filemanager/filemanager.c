@@ -21,6 +21,7 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 
 	char* token = strtok((char*)cmd, flm.cmd_separator);
 
+	// Process SET command.
 	if (token && strcmp(token, flm.cmd_set) == 0) {
 		key = strtok(NULL, flm.cmd_separator);
 		value = strtok(NULL, flm.cmd_separator);
@@ -47,6 +48,7 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 		}
 	} 
 
+	// Process DEL command.
 	if (token && strcmp(token, flm.cmd_del) == 0) {
 		key = strtok(NULL, flm.cmd_separator);
 		printf("[FILEMANAGER]: Key: %s\n", key);
@@ -65,6 +67,7 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 		}
 	}
 
+	// Process GET command.
 	if (token && strcmp(token, flm.cmd_get) == 0) {
 		key = strtok(NULL, flm.cmd_separator);
 		printf("[FILEMANAGER]: Key: %s\n", key);
@@ -75,7 +78,6 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char*
 			return ERRFILE;
 		}
 
-		// Read the content of the file
 		ssize_t bytes_read = read(fd, read_val, flm.read_buffsize - 1); // Leave 1 byte of space for null-terminator at the end of the buffer.
 		if (bytes_read < 0) {
 			perror("[FILEMANAGER]: Error reading file");
