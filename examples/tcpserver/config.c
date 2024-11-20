@@ -88,9 +88,6 @@ error unix_tcp_write(byte* buffer, isize* write_len) {
 error setup_tcp_server_config(int port)
 {
 	struct sockaddr_in server_addr;
-	int client_fd;
-	socklen_t client_len;
-	struct sockaddr_in client_addr;
 
 	close(global_server_sock_fd); // In case it was previosly created.
 
@@ -117,6 +114,13 @@ error setup_tcp_server_config(int port)
 		return ERSYS;
 	}
 	printf("Socket listening.\n");
+	return SYSOK;
+}
+
+error acceptconn() {
+	int client_fd;
+	socklen_t client_len;
+	struct sockaddr_in client_addr;
 
 	client_len = sizeof(client_addr);
 	client_fd = accept(global_server_sock_fd, (struct sockaddr*)&client_addr, &client_len);
@@ -127,7 +131,6 @@ error setup_tcp_server_config(int port)
 	printf("Client connected to cfg server.\n");
 	
 	global_client_sock_fd = client_fd;
-
 	return SYSOK;
 }
 
@@ -140,13 +143,13 @@ error closeconn() {
 
 error sys_setup(int port)
 {
-	if (setup_tcp_server_config(port) < 0) {
-		printf("Error setup config server.\n");
+	if (set_socket_non_blocking(global_client_sock_fd) != 0) {
+		printf("Failed to set config config socket to non-blocking mode\n");
 		return ERSYS;
 	}
 
-	if (set_socket_non_blocking(global_client_sock_fd) != 0) {
-		printf("Failed to set config config socket to non-blocking mode\n");
+	if (setup_tcp_server_config(port) < 0) {
+		printf("Error setup config server.\n");
 		return ERSYS;
 	}
 

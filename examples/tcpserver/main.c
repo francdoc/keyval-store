@@ -30,15 +30,21 @@ int main()
 
     flm = new_filemanager("SET", "GET", "DEL", " ", filemanagerBufferSize);
     
+    err = sys_setup(port);
+    if (err != 0) {
+        printf("Setup failed. Closing program.\n");
+        exit(EXIT_FAILURE);
+    } 
+
     while (true) { // First loop for reconnection mechanism.
         if (conn_open == false) {
-            err = sys_setup(port);
+            err = acceptconn();
             if (err != 0) {
-                printf("Setup failed. Closing program.\n");
+                printf("Accept connection failed. Closing program.\n");
                 exit(EXIT_FAILURE);
-            } 
+            }
+            conn_open = true;
         }
-        conn_open = true;
         
         shell_t s = shell_new(commandline, sizeof(bufferRead));
         printf("Shell ready.\n");
