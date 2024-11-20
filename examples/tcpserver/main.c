@@ -58,19 +58,20 @@ int main()
                 
                 if (err == SYSOK) { // If the processed command was valid and successfully handled, close the connection with the client.
                     snprintf((char*) bufferWrite, sizeof(bufferWrite), "OK\n");
-                    shell_write(&s, bufferWrite, strlen((char*) bufferWrite));
+                    isize write_len = strlen((char*)bufferWrite);
+                    shell_write(&s, bufferWrite, &write_len);
                 }
                 else if (err == ERFNOTFOUND) {
                     snprintf((char*)bufferWrite, sizeof(bufferWrite), "NOTFOUND\n");
-                    shell_write(&s, bufferWrite, strlen((char*)bufferWrite));
+                    isize write_len = strlen((char*)bufferWrite);
+                    shell_write(&s, bufferWrite, &write_len);
                 }
                 else if (err == RETURNVAL) {
                     snprintf((char*)bufferWrite, sizeof(bufferWrite), "OK\n%s\n", read_val);
-                    shell_write(&s, bufferWrite, strlen((char*)bufferWrite));
+                    isize write_len = strlen((char*)bufferWrite);
+                    shell_write(&s, bufferWrite, &write_len);
                 }
                 else if (err == ERSYS) {
-                    snprintf((char*)bufferWrite, sizeof(bufferWrite), "ERROR\n");
-                    shell_write(&s, bufferWrite, strlen((char*)bufferWrite));
                     printf("Command not found, ending program.\n");
                     exit(EXIT_FAILURE);                
                 }
