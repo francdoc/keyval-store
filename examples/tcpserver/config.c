@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#include "common/syserrors.h"
+#include "common/syscodes.h"
 
 readwriter_t commandline;
 sleeper sleep_nano;
@@ -41,7 +41,7 @@ error set_socket_non_blocking(int sockfd) {
         perror("fcntl F_SETFL O_NONBLOCK");
         return ERSYS;
     }
-    return 0;
+    return SYSOK;
 }
 
 error unix_tcp_read(byte* buffer, isize* read_len)
@@ -50,7 +50,7 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 
 	if (ret > 0) { // "ret" equals to the number of bytes that were read.
 		*read_len = ret;
-		return 0;
+		return SYSOK;
 	}
 
 	if (ret < 0) { 
@@ -66,7 +66,7 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 	}
 
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
-		return 0; // No data available in non-blocking mode. Since the socket is configured as non-blocking we let the program continue.
+		return SYSOK; // No data available in non-blocking mode. Since the socket is configured as non-blocking we let the program continue.
 }
 }
 
@@ -123,7 +123,7 @@ error setup_tcp_server_config(int port)
 
 	global_client_sock_fd = client_fd;
 
-	return 0;
+	return SYSOK;
 }
 
 error closeconn() {
@@ -148,5 +148,5 @@ error sys_setup(int port)
 	sleep_nano = &sleep_nano_linux;
 	commandline.read = unix_tcp_read;
 	
-	return 0;
+	return SYSOK;
 }

@@ -1,5 +1,4 @@
 #include "common/common.h"
-#include "common/syserrors.h"
 #include "common/shell/shell.h"
 
 shell_t shell_new(readwriter_t rw, isize buffsize)

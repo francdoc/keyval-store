@@ -18,6 +18,8 @@
         "error.h": "c",
         "fcntl.h": "c",
         "syserrors.h": "c",
-        "filemanager.h": "c"
+        "filemanager.h": "c",
+        "syscodes.h": "c",
+        "in.h": "c"
     }
 }

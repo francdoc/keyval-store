@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "common/common.h"
+#include "common/syscodes.h"
 #include "common/shell/shell.h"
 #include "common/filemanager/filemanager.h"
 
@@ -49,19 +50,24 @@ int main()
             if (totalRead > 0) {
                 printf("Received cmd: %s\n", buffer);
 
-                err = filemanager_process_cmd(flm, buffer, totalRead);
+                char* read_val;
+                err = filemanager_process_cmd(flm, buffer, totalRead, read_val);
                 
-                // TODO: add answer to client.
-                // TODO: NOTFOUND does not have to end program.
                 // TODO: run valgrind.
                 
-                if (err == 0) { // // If the processed command was valid and successfully handled, close the connection with the client.
+                if (err == SYSOK) { // // If the processed command was valid and successfully handled, close the connection with the client.
                     err = closeconn();
                     if (err != 0) {
                         printf("Failed closing connection with client. Closing program.\n");
                         exit(EXIT_FAILURE);
                     }
                     conn_open = false;
+                }
+                else if (err == ERFNOTFOUND) {
+
+                }
+                else if (err == RETURNVAL) {
+
                 }
                 else {
                     printf("Command not found, ending program.\n");
@@ -81,5 +87,5 @@ int main()
             sleep_nano(500 * microseconds);
         }
     }
-    return 0;
+    return SYSOK;
 }

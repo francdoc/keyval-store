@@ -1,7 +1,7 @@
 #include <fcntl.h>
 
 #include "common/common.h"
-#include "common/syserrors.h"
+#include "common/syscodes.h"
 #include "common/filemanager/filemanager.h"
 
 filemanager_t new_filemanager(char* cmd_set, char* cmd_get, char* cmd_del, char* cmd_separator, isize read_buffsize) {
@@ -15,11 +15,11 @@ filemanager_t new_filemanager(char* cmd_set, char* cmd_get, char* cmd_del, char*
 	return flm;
 }
 
-error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd) {
-    char* key = NULL;
-    char* value = NULL;
+error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd, char* read_val) {
+	char* key = NULL;
+	char* value = NULL;
 
-    char* token = strtok((char*)cmd, flm.cmd_separator); // Gets cmd (first word in message from client).
+	char* token = strtok((char*)cmd, flm.cmd_separator); // Gets cmd (first word in message from client).
 
 	if (token && strcmp(token, flm.cmd_set) == 0) { // Checks first if token is not NULL.
 		key = strtok(NULL, flm.cmd_separator);
@@ -43,7 +43,7 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd) {
 
 			close(fd); // Close the file descriptor after writing.
 			printf("File '%s' created successfully.\n", key);
-			return 0; // TODO: respond to client 'OK\n'.
+			return SYSOK; // TODO: respond to client 'OK\n'.
 		}
 	} 
 
@@ -54,14 +54,14 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd) {
 		if (access(key, F_OK) == 0) { // F_OK checks for file existence.
 			if (remove(key) == 0) {
 				printf("File '%s' deleted successfully.\n", key); 
-				return 0; // TODO: respond to client 'OK\n'.
+				return SYSOK; // TODO: respond to client 'OK\n'.
 			} else {
 				perror("Failed to delete file");
 				return ERSYS;
 			}	
 		} else {
 			printf("File '%s' does not exist.\n", key);
-			return 0; // TODO: respond to client 'OK\n'.
+			return SYSOK; // TODO: respond to client 'OK\n'.
 		}
 	}
 
@@ -87,12 +87,13 @@ error filemanager_process_cmd(filemanager_t flm, byte* cmd, isize len_cmd) {
 			// Null-terminate the buffer to prevent garbage output.
 			buffer[bytes_read] = '\0';
 			printf("Value: %s\n", buffer);
+			char* read_val = buffer;
 		}
 
 		// Close the file.
 		close(fd); 
-		return 0; // TODO: respond to client 'OK\n<value>\n'
+		return RETURNVAL; // TODO: respond to client 'OK\n<value>\n'
 	}
-	
+
 	return ERSYS;	
 }
