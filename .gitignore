@@ -1,3 +1,4 @@
 examples/tcpserver/build*
 examples/tcpserver/tcpserver.bin
 examples/multithread/build*
+examples/multithread/multithread.bin
