@@ -11,6 +11,8 @@
 #include <fcntl.h>
 #include <sys/select.h>
 
+#include <arpa/inet.h>
+
 #include "common/common.h"
 #include "common/shell/shell.h"
 
@@ -18,30 +20,22 @@
 
 #include "common/syscodes.h"
 
+#include "clientdata.h"
+
+#define MAX_CLIENTS 5 
+
 readwriter_t commandline;
 sleeper sleep_nano;
 
 int global_server_sock_fd = 0;
 int global_client_sock_fd = 0;
 
+clientdata_t clients[MAX_CLIENTS];
+
 void sleep_nano_linux(int64_t nanoseconds)
 {
 	double sleep_seconds = (double)(nanoseconds) / 1e9;
 	sleep(sleep_seconds);
-}
-
-error set_socket_non_blocking(int sockfd) {
-    int flags = fcntl(sockfd, F_GETFL, 0);
-    if (flags == -1) {
-        perror("[CONFIG]: fcntl F_GETFL");
-        return ERRSYS;
-    }
-
-    if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        perror("[CONFIG]: fcntl F_SETFL O_NONBLOCK");
-        return ERRSYS;
-    }
-    return SYSOK;
 }
 
 // Reader port.
@@ -103,47 +97,79 @@ error setup_tcp_server(int port)
 		return ERRSYS;
 	}
 
-	if (listen(global_server_sock_fd, 1) < 0) {
+	if (listen(global_server_sock_fd, MAX_CLIENTS) < 0) {
 		perror("[CONFIG]: Listen failed");
 		close(global_server_sock_fd);
 		return ERRSYS;
 	}
-	printf("[CONFIG]: Socket listening.\n");
+
+	cd_init(clients, MAX_CLIENTS);
+
+	printf("[CONFIG]: Server listening.\n");
 	return SYSOK;
 }
 
-error acceptconn() {
-	int client_fd;
-	socklen_t client_len;
-	struct sockaddr_in client_addr;
+void *handle_client(void *arg) {
+    clientdata_t *client = (clientdata_t *)arg;
+    int fd = client->fd;
 
-	client_len = sizeof(client_addr);
-	client_fd = accept(global_server_sock_fd, (struct sockaddr*)&client_addr, &client_len);
+    char buffer[128];
+    int n;
+
+    // Blocking read
+    if ((n = read(fd, buffer, sizeof(buffer) - 1)) == -1) {
+        perror("Error reading from socket");
+        close(fd);
+        client->free = true;
+        return NULL;
+    }
+    buffer[n] = '\0';
+    printf("Received %d bytes: %s\n", n, buffer);
+
+    if (write(fd, "Hola.\n", 5) == -1) {
+        perror("Error writing to socket");
+        close(fd);
+        client->free = true; 
+        return NULL;
+    }
+
+    close(fd);
+    client->free = true;
+    return NULL;
+}
+
+error acceptconn() {
+	struct sockaddr_in clientaddr;
+	socklen_t addr_len = sizeof(clientaddr);
+
+	int client_fd = accept(global_server_sock_fd, (struct sockaddr *)&clientaddr, &addr_len);	
 	if (client_fd < 0) {
 		perror("[CONFIG]: Accept failed.\n");
 		return ERRSYS;
 	}
 	printf("[CONFIG]: Client connected to server.\n");
-	
-	global_client_sock_fd = client_fd;
-	return SYSOK;
-}
+	printf("[CONFIG]: Client connection from: %s\n", inet_ntoa(clientaddr.sin_addr));
 
-error closeconn() {
-	printf("[CONFIG]: Closing connection with client.\n");
-	if (close(global_client_sock_fd) !=0){
+	int index = cd_getFreeIndex(clients, MAX_CLIENTS);
+	if (index == -1) {
+		perror("[CONFIG]: getFreeIndex function failed.\n");
 		return ERRSYS;
 	}
+
+	clients[index].fd = client_fd;
+	clients[index].free = false;
+
+	if (pthread_create(&clients[index].thread, NULL, handle_client, &clients[index]) != 0) {
+		perror("Error creating thread");
+		clients[index].free = true;
+		close(client_fd);
+	}
+	
 	return SYSOK;
 }
 
 error sys_setup(int port)
 {
-	if (set_socket_non_blocking(global_client_sock_fd) != 0) {
-		perror("[CONFIG]: Failed to set config config socket to non-blocking mode\n");
-		return ERRSYS;
-	}
-
 	if (setup_tcp_server(port) < 0) {
 		perror("[CONFIG]: Error with setup server.\n");
 		return ERRSYS;

@@ -21,6 +21,7 @@
         "filemanager.h": "c",
         "syscodes.h": "c",
         "in.h": "c",
-        "socket.h": "c"
+        "socket.h": "c",
+        "clientdata.h": "c"
     }
 }
