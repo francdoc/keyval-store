@@ -21,9 +21,9 @@ byte bufferWrite[shellBufferSize];
 
 static bool conn_open = false;
 
-void handle_closeconn(){
+void handle_closeconn(int client_fd){
     error err;
-    err = closeconn(); 
+    err = closeconn(client_fd); 
     if (err != 0) {
         perror("[MAIN]: Failed closing connection with client.\n");
         close(EXIT_FAILURE);
@@ -34,6 +34,7 @@ int main()
 {
     error err;
     isize totalRead;
+    int client_fd;
 
     filemanager_t flm;
     flm = new_filemanager("SET", "GET", "DEL", " ", filemanagerBufferSize);
@@ -46,16 +47,16 @@ int main()
 
     while (true) { // First loop for reconnection mechanism.
         if (conn_open == false) {
-            err = acceptconn();
+            err = acceptconn(&client_fd);
             if (err != 0) {
                 perror("[MAIN]: Accept connection failed. Closing program.\n");
-                handle_closeconn();
+                handle_closeconn(client_fd);
                 exit(EXIT_FAILURE);
             }
             conn_open = true;
         }
         
-        shell_t s = shell_new(commandline, sizeof(bufferRead));
+        shell_t s = shell_new(commandline, sizeof(bufferRead), client_fd);
         printf("[MAIN]: Shell ready.\n");
 
         while (true) { // Second loop for non-blocking reading.
@@ -64,7 +65,7 @@ int main()
             err = shell_read(&s, bufferRead, &totalRead);
             if (err != 0) {
                 printf("[MAIN]: Error reading shell. Closing program.\n");
-                handle_closeconn();
+                handle_closeconn(&client_fd);
                 exit(EXIT_FAILURE);
             }
 
@@ -82,7 +83,7 @@ int main()
                     if (err != SYSOK) {
                         printf("[MAIN]: Debug I: shell_write returned %d\n", err);
                         printf("[MAIN]: Error writing shell. Closing program.\n");
-                        handle_closeconn();
+                        handle_closeconn(&client_fd);
                         exit(EXIT_FAILURE);
                     }
                 }
@@ -94,7 +95,7 @@ int main()
                     if (err != SYSOK) {
                         printf("[MAIN]: Debug II: shell_write returned %d\n", err);
                         printf("[MAIN]: Error writing shell. Closing program.\n");
-                        handle_closeconn();
+                        handle_closeconn(client_fd);
                         exit(EXIT_FAILURE);
                     }
                 }
@@ -108,18 +109,18 @@ int main()
                     if (err != SYSOK) {
                         printf("[MAIN]: Debug III: shell_write returned %d\n", err);
                         printf("[MAIN]: Error writing shell. Closing program.\n");
-                        handle_closeconn();
+                        handle_closeconn(client_fd);
                         exit(EXIT_FAILURE);
                     }
                 }
                 else if (err == ERRSYS) {
                     printf("[MAIN]: Command not found, ending program.\n");
-                    handle_closeconn();
+                    handle_closeconn(client_fd);
                     exit(EXIT_FAILURE);                
                 }
                 
                 // If we got here then we are good to close the connection to the client.
-                handle_closeconn();
+                handle_closeconn(client_fd);
                 conn_open = false;
             }
             

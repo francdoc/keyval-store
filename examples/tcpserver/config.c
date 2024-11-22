@@ -112,7 +112,6 @@ error setup_tcp_server(int port)
 }
 
 error acceptconn(int* client_fd) {
-	int client_fd;
 	socklen_t client_len;
 	struct sockaddr_in client_addr;
 
