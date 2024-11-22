@@ -36,7 +36,6 @@ int main()
     isize totalRead;
 
     filemanager_t flm;
-
     flm = new_filemanager("SET", "GET", "DEL", " ", filemanagerBufferSize);
     
     err = sys_setup(port);

@@ -16,7 +16,6 @@
 int main()
 {
     error err;
-    isize totalRead;
 
     err = sys_setup(port);
     if (err != 0) {
@@ -25,9 +24,9 @@ int main()
     } 
 
     while (true) {
-        err = acceptconn();
+        err = sys_update(); // Handles connections, shell I/O and filemanager for new clients.
         if (err != 0) {
-            perror("[MAIN]: Accept connection failed. Closing program.\n");
+            perror("[MAIN]: System update failed. Closing program.\n");
             exit(EXIT_FAILURE);
         }    
         sleep_nano(500 * microseconds);

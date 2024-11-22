@@ -22,15 +22,26 @@
 
 #include "clientdata.h"
 
+#include "common/filemanager/filemanager.h"
+
 #define MAX_CLIENTS 5 
+
+#define shellBufferSize 512 // bytes
+#define filemanagerBufferSize shellBufferSize // bytes
 
 readwriter_t commandline;
 sleeper sleep_nano;
 
 int global_server_sock_fd = 0;
-int global_client_sock_fd = 0;
 
 clientdata_t clients[MAX_CLIENTS];
+
+byte bufferRead[shellBufferSize];
+byte bufferWrite[shellBufferSize];
+
+#define microseconds (1000)
+#define milliseconds (1000 * microseconds)
+#define seconds (1000 * milliseconds)
 
 void sleep_nano_linux(int64_t nanoseconds)
 {
@@ -39,9 +50,9 @@ void sleep_nano_linux(int64_t nanoseconds)
 }
 
 // Reader port.
-error unix_tcp_read(byte* buffer, isize* read_len)
+error unix_tcp_read(byte* buffer, isize* read_len, int client_fd)
 {
-    ssize_t ret = read(global_client_sock_fd, buffer, *read_len);
+    ssize_t ret = read(client_fd, buffer, *read_len);
 
 	if (ret > 0) { // "ret" equals to the number of bytes that were read.
 		*read_len = ret;
@@ -64,8 +75,9 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 }
 
 // Writer port.
-error unix_tcp_write(byte* buffer, isize* write_len) {
-    ssize_t ret = write(global_client_sock_fd, buffer, *write_len);
+error unix_tcp_write(byte* buffer, isize* write_len, int client_fd) {
+	// TODO: adapt shell to take fd
+    ssize_t ret = write(client_fd, buffer, *write_len);
 
     if (ret > 0) { 
         *write_len = ret;
@@ -110,35 +122,91 @@ error setup_tcp_server(int port)
 }
 
 void *handle_client(void *arg) {
+	filemanager_t flm;
+    flm = new_filemanager("SET", "GET", "DEL", " ", filemanagerBufferSize);
+    
+	error err;
+	isize totalRead;
+
+	shell_t s = shell_new(commandline, sizeof(bufferRead));
+	printf("[CONFIG]: Shell ready.\n");
+
     clientdata_t *client = (clientdata_t *)arg;
     int fd = client->fd;
 
-    char buffer[128];
-    int n;
+    while (true) {		
+		totalRead = shellBufferSize; // Buffer must be set for each read cycle.
+		
+		err = shell_read(&s, bufferRead, &totalRead);
+		if (err != 0) {
+			printf("[CONFIG]: Error reading shell. Closing program.\n");
+			close(fd);
+			exit(EXIT_FAILURE);
+		}
 
-    // Blocking read
-    if ((n = read(fd, buffer, sizeof(buffer) - 1)) == -1) {
-        perror("Error reading from socket");
-        close(fd);
-        client->free = true;
-        return NULL;
-    }
-    buffer[n] = '\0';
-    printf("Received %d bytes: %s\n", n, buffer);
+		if (totalRead > 0) {
+			printf("[CONFIG]: Received cmd: %s\n", bufferRead);
 
-    if (write(fd, "Hola.\n", 5) == -1) {
-        perror("Error writing to socket");
-        close(fd);
-        client->free = true; 
-        return NULL;
-    }
+			char read_val[filemanagerBufferSize] = {0};
+			err = filemanager_process_cmd(flm, bufferRead, totalRead, read_val);
+							
+			if (err == SYSOK) { // If the processed command was valid and successfully handled, close the connection with the client.
+				snprintf((char*) bufferWrite, sizeof(bufferWrite), "OK\n");
+				isize write_len = strlen((char*)bufferWrite);
+				
+				err = shell_write(&s, bufferWrite, &write_len);
+				if (err != SYSOK) {
+					printf("[CONFIG]: Debug I: shell_write returned %d\n", err);
+					printf("[CONFIG]: Error writing shell. Closing program.\n");
+					close(fd);
+					exit(EXIT_FAILURE);
+				}
+			}
+			else if (err == ERRFILE) {
+				snprintf((char*)bufferWrite, sizeof(bufferWrite), "NOTFOUND\n");
+				isize write_len = strlen((char*)bufferWrite);
+				
+				err = shell_write(&s, bufferWrite, &write_len);
+				if (err != SYSOK) {
+					printf("[CONFIG]: Debug II: shell_write returned %d\n", err);
+					printf("[CONFIG]: Error writing shell. Closing program.\n");
+					close(fd);
+					exit(EXIT_FAILURE);
+				}
+			}
+			else if (err == RETURNVAL) {
+				size_t fixed_overhead = strlen("OK\n") + strlen("\n") + 1; // To avoid warning related to truncated writing.
+				size_t max_read_val_length = sizeof(bufferWrite) - fixed_overhead;
+				snprintf((char*)bufferWrite, sizeof(bufferWrite), "OK\n%.*s\n", (int)max_read_val_length, read_val);
+				isize write_len = strlen((char*)bufferWrite);
+				
+				err = shell_write(&s, bufferWrite, &write_len);
+				if (err != SYSOK) {
+					printf("[CONFIG]: Debug III: shell_write returned %d\n", err);
+					printf("[CONFIG]: Error writing shell. Closing program.\n");
+					close(fd);
+					exit(EXIT_FAILURE);
+				}
+			}
+			else if (err == ERRSYS) {
+				printf("[CONFIG]: Command not found, ending program.\n");
+				close(fd);
+				exit(EXIT_FAILURE);                
+			}
+
+			// If we got here then we are good to close the connection to the client.
+			close(fd);
+		}
+	
+		sleep_nano(500 * microseconds);
+	}
 
     close(fd);
     client->free = true;
     return NULL;
 }
 
-error acceptconn() {
+error sys_update() {
 	struct sockaddr_in clientaddr;
 	socklen_t addr_len = sizeof(clientaddr);
 
