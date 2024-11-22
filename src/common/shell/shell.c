@@ -2,12 +2,13 @@
 #include "common/shell/shell.h"
 #include "common/syscodes.h"
 
-shell_t shell_new(readwriter_t rw, isize buffsize)
+shell_t shell_new(readwriter_t rw, isize buffsize, int fd)
 {
 	shell_t s;
 	zero(&s);
 	s.buffsize = buffsize;
 	s.rw = rw;
+    s.fd = fd;
 	return s;
 }
 
@@ -15,7 +16,7 @@ error shell_read(shell_t* s, byte* buffer, isize* read_len)
 {
     *read_len = s->buffsize;
     
-    error err = s->rw.read(buffer, read_len);
+    error err = s->rw.read(buffer, read_len, s->fd);
 
     if (err != SYSOK) {
         printf("[SHELL]: Error with reader port.\n");
@@ -48,7 +49,7 @@ error shell_write(shell_t* s, byte* buffer, isize* write_len) {
         return ERRSYS;
     }
 
-    error err = s->rw.write(buffer, write_len);
+    error err = s->rw.write(buffer, write_len, s->fd);
 
     if (err == SYSOK) {
         printf("[SHELL]: Shell write successful. Bytes written: %ld\n", *write_len);

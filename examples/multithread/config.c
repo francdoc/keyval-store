@@ -128,11 +128,11 @@ void *handle_client(void *arg) {
 	error err;
 	isize totalRead;
 
-	shell_t s = shell_new(commandline, sizeof(bufferRead));
-	printf("[CONFIG]: Shell ready.\n");
-
     clientdata_t *client = (clientdata_t *)arg;
     int fd = client->fd;
+
+	shell_t s = shell_new(commandline, sizeof(bufferRead), fd);
+	printf("[CONFIG]: Shell ready.\n");
 
     while (true) {		
 		totalRead = shellBufferSize; // Buffer must be set for each read cycle.

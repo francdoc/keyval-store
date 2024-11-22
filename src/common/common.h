@@ -18,8 +18,8 @@ typedef int error;
 
 typedef void (*sleeper)(int64_t nanoseconds);
 
-typedef error (*reader)(byte* buffer, isize* read_len);
-typedef error (*writer)(byte* buffer, isize* written_len);
+typedef error (*reader)(byte* buffer, isize* read_len, int fd);
+typedef error (*writer)(byte* buffer, isize* written_len, int fd);
 
 typedef struct {
 	writer write;
