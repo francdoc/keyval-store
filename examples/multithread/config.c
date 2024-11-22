@@ -123,19 +123,19 @@ error setup_tcp_server(int port)
 
 void *handle_client(void *arg) {
 	filemanager_t flm;
-    flm = new_filemanager("SET", "GET", "DEL", " ", filemanagerBufferSize);
-    
+	flm = new_filemanager("SET", "GET", "DEL", " ", filemanagerBufferSize);
+
 	error err;
 	isize totalRead;
 
-    clientdata_t *client = (clientdata_t *)arg;
-    int fd = client->fd;
+	clientdata_t *client = (clientdata_t *)arg;
+	int fd = client->fd;
 
 	shell_t s = shell_new(commandline, sizeof(bufferRead), fd);
 	printf("[CONFIG]: Shell ready.\n");
 
 	bool client_connected = true;
-
+	
     while (true) {	
 		totalRead = shellBufferSize; // Buffer must be set for each read cycle.
 		
@@ -235,8 +235,8 @@ error sys_update() {
 		clients[index].free = true;
 		close(client_fd);
 	}
-	
-	return SYSOK;
+
+return SYSOK;
 }
 
 error sys_setup(int port)

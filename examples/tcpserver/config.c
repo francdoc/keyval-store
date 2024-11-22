@@ -22,7 +22,6 @@ readwriter_t commandline;
 sleeper sleep_nano;
 
 int global_server_sock_fd = 0;
-int global_client_sock_fd = 0;
 
 void sleep_nano_linux(int64_t nanoseconds)
 {
@@ -45,9 +44,9 @@ error set_socket_non_blocking(int sockfd) {
 }
 
 // Reader port.
-error unix_tcp_read(byte* buffer, isize* read_len)
+error unix_tcp_read(byte* buffer, isize* read_len, int client_fd)
 {
-    ssize_t ret = read(global_client_sock_fd, buffer, *read_len);
+    ssize_t ret = read(client_fd, buffer, *read_len);
 
 	if (ret > 0) { // "ret" equals to the number of bytes that were read.
 		*read_len = ret;
@@ -70,8 +69,8 @@ error unix_tcp_read(byte* buffer, isize* read_len)
 }
 
 // Writer port.
-error unix_tcp_write(byte* buffer, isize* write_len) {
-    ssize_t ret = write(global_client_sock_fd, buffer, *write_len);
+error unix_tcp_write(byte* buffer, isize* write_len, int client_fd) {
+    ssize_t ret = write(client_fd, buffer, *write_len);
 
     if (ret > 0) { 
         *write_len = ret;
@@ -112,7 +111,7 @@ error setup_tcp_server(int port)
 	return SYSOK;
 }
 
-error acceptconn() {
+error acceptconn(int* client_fd) {
 	int client_fd;
 	socklen_t client_len;
 	struct sockaddr_in client_addr;
@@ -125,13 +124,12 @@ error acceptconn() {
 	}
 	printf("[CONFIG]: Client connected to server.\n");
 	
-	global_client_sock_fd = client_fd;
 	return SYSOK;
 }
 
-error closeconn() {
+error closeconn(int client_fd) {
 	printf("[CONFIG]: Closing connection with client.\n");
-	if (close(global_client_sock_fd) !=0){
+	if (close(client_fd) !=0){
 		return ERRSYS;
 	}
 	return SYSOK;
@@ -139,11 +137,6 @@ error closeconn() {
 
 error sys_setup(int port)
 {
-	if (set_socket_non_blocking(global_client_sock_fd) != 0) {
-		perror("[CONFIG]: Failed to set config config socket to non-blocking mode\n");
-		return ERRSYS;
-	}
-
 	if (setup_tcp_server(port) < 0) {
 		perror("[CONFIG]: Error with setup server.\n");
 		return ERRSYS;
