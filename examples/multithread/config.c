@@ -134,7 +134,9 @@ void *handle_client(void *arg) {
 	shell_t s = shell_new(commandline, sizeof(bufferRead), fd);
 	printf("[CONFIG]: Shell ready.\n");
 
-    while (true) {		
+	bool client_connected = true;
+
+    while (true) {	
 		totalRead = shellBufferSize; // Buffer must be set for each read cycle.
 		
 		err = shell_read(&s, bufferRead, &totalRead);
@@ -196,12 +198,13 @@ void *handle_client(void *arg) {
 
 			// If we got here then we are good to close the connection to the client.
 			close(fd);
+			client_connected = false;
 		}
-	
 		sleep_nano(500 * microseconds);
+		if (client_connected == false) {
+				break;
+		}
 	}
-
-    close(fd);
     client->free = true;
     return NULL;
 }
