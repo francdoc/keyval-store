@@ -116,8 +116,8 @@ error acceptconn(int* client_fd) {
 	struct sockaddr_in client_addr;
 
 	client_len = sizeof(client_addr);
-	client_fd = accept(global_server_sock_fd, (struct sockaddr*)&client_addr, &client_len);
-	if (client_fd < 0) {
+	*client_fd = accept(global_server_sock_fd, (struct sockaddr*)&client_addr, &client_len);
+	if (*client_fd < 0) {
 		perror("[CONFIG]: Accept failed.\n");
 		return ERRSYS;
 	}

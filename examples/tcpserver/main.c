@@ -65,7 +65,7 @@ int main()
             err = shell_read(&s, bufferRead, &totalRead);
             if (err != 0) {
                 printf("[MAIN]: Error reading shell. Closing program.\n");
-                handle_closeconn(&client_fd);
+                handle_closeconn(client_fd);
                 exit(EXIT_FAILURE);
             }
 
@@ -83,7 +83,7 @@ int main()
                     if (err != SYSOK) {
                         printf("[MAIN]: Debug I: shell_write returned %d\n", err);
                         printf("[MAIN]: Error writing shell. Closing program.\n");
-                        handle_closeconn(&client_fd);
+                        handle_closeconn(client_fd);
                         exit(EXIT_FAILURE);
                     }
                 }
