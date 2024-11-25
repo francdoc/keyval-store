@@ -199,6 +199,8 @@ void *handle_client(void *arg) {
 			// If we got here then we are good to close the connection to the client.
 			close(fd);
 			client_connected = false;
+
+			// TODO: add pthread_join.
 		}
 		sleep_nano(500 * microseconds);
 		if (client_connected == false) {
